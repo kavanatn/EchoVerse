@@ -1,0 +1,5 @@
+ibm-watson
+ibm-cloud-sdk-core
+streamlit
+requests
+pypdf
