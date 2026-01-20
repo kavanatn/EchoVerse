@@ -18,10 +18,14 @@ st.set_page_config(
     layout="centered"
 )
 
-# Check for API Key
-api_key = os.getenv("WATSONX_API_KEY")
-if not api_key:
-    st.warning("Running in demo mode. API key not configured. Please set WATSONX_API_KEY.")
+# Check for API Keys
+watsonx_api_key = os.getenv("WATSONX_API_KEY")
+tts_api_key = os.getenv("TTS_API_KEY")
+
+if not watsonx_api_key:
+    st.warning("⚠️ WATSONX_API_KEY is missing. Text generation will not work.")
+if not tts_api_key:
+    st.warning("⚠️ TTS_API_KEY is missing. Audio generation will not work.")
 
 
 # ---------------------------
@@ -486,15 +490,15 @@ def render_output_page():
         selected_voice = st.session_state.get(
             "selected_voice", "allison_expressive")
 
-        if api_key:
+        if watsonx_api_key:
             try:
-                token = get_ibm_iam_bearer(api_key)
+                token = get_ibm_iam_bearer(watsonx_api_key)
                 ai_generated_object = genrate_reader_json(original_text, tone, token)
             except Exception as e:
                 st.error(f"Error generating text: {e}")
                 ai_generated_object = None
         else:
-             st.error("API Key missing. Cannot generate text.")
+             st.error("WATSONX_API_KEY missing. Cannot generate text.")
              ai_generated_object = None
 
         if ai_generated_object:
@@ -532,13 +536,11 @@ def render_output_page():
 
         try:
             # Generate TTS with the selected voice
-            if ai_generated_object and api_key:
+            if ai_generated_object and tts_api_key:
                 generate_tts(ai_generated_object, audio_file_path,
-                             voice_name=selected_voice, api_key=api_key)
-            elif not api_key:
-                 st.error("API Key missing. Cannot generate audio.")
-                 # Create a dummy file or handle gracefully? 
-                 # For now, just let the next check fail or we can return early
+                             voice_name=selected_voice, api_key=tts_api_key)
+            elif not tts_api_key:
+                 st.error("TTS_API_KEY missing. Cannot generate audio.")
                  pass
 
             if audio_file_path.exists():
